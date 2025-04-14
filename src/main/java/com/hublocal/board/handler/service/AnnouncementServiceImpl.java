@@ -4,6 +4,7 @@ import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
 import com.hublocal.board.handler.repository.AnnouncementRepository;
 import com.hublocal.board.handler.repository.CategoryRepository;
+import com.hublocal.board.handler.repository.UserRepository;
 import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.categoryUtils.CategoryLogic;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementRepository announcementRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<Announcement> listAnnouncements() {
@@ -46,7 +48,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     public Announcement saveAnnouncement(Announcement announcement) {
         verifyCategoryExist(announcement);
-
+        verifyUserExist(announcement);
         if (!CategoryLogic.verifyCategoryHasNoChildren(categoryRepository, announcement.getCategoryId())) {
             throw new CustomException("Category: '" + announcement.getCategoryId() + "' has children, category in the " +
                     "request must be lowest available level");
@@ -61,9 +63,16 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             throw new CustomException("Category: '" + announcement.getCategoryId() + "' has children, category in the " +
                     "request must be lowest available level");
         }
+
         Announcement announcementDb;
+
         try {
             announcementDb = HandleFoundObject.getAnnouncement(this, id);
+
+            if (!announcementDb.getUserId().equals(announcement.getUserId())) {
+                throw new CustomException("UserId cannot be changed. Current userID: '" + announcementDb.getUserId() + "', new userId: '" + announcement.getUserId() + "'.");
+            }
+
             verifyCategoryExist(announcement);
             announcement.setId(announcementDb.getId());
         } catch (IllegalArgumentException e) {
@@ -80,6 +89,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     private void verifyCategoryExist(Announcement announcement) {
         try {
             categoryRepository.findById(announcement.getCategoryId()).orElseThrow(() -> new CustomException("Category with id: '" + announcement.getCategoryId() + "' not found"));
+        } catch (HttpMessageNotReadableException e) {
+            throw new CustomException(e.getMessage());
+        }
+    }
+
+    private void verifyUserExist(Announcement announcement) {
+        try {
+            userRepository.findById(UUID.fromString(announcement.getUserId())).orElseThrow(() -> new CustomException("User with id: '" + announcement.getUserId() + "' not found"));
         } catch (HttpMessageNotReadableException e) {
             throw new CustomException(e.getMessage());
         }

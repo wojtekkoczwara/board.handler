@@ -1,5 +1,6 @@
 package com.hublocal.board.handler.utils.categoryUtils;
 
+import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
 import com.hublocal.board.handler.model.Announcement;
 import com.hublocal.board.handler.model.Category;
@@ -51,5 +52,11 @@ public class CategoryLogic {
 
     public static boolean verifyCategoryHasAnnouncements(CategoryRepository categoryRepository, int id) {
         return categoryRepository.findById(id).orElseThrow(NotFoundException::new).getAnnouncementSet().isEmpty();
+    }
+
+    public static void validateCategoryIsAvailableByName(CategoryRepository repository, String name) {
+        repository.findByName(name).ifPresent(category -> {
+            throw new CustomException("Category with name: '" + name + "' is already in the database");
+        });
     }
 }

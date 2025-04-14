@@ -39,14 +39,11 @@ public class Announcement {
     @Column(name = "announcement_description", length = 1000, updatable = false, nullable = false)
     private String description;
 
+    @Valid
+    @NotNull
     @NotBlank
-    @Size(max = 50)
-    @Column(name = "author", length = 50)
-    private String author;
-
-    @Size(max = 50)
-    @Column(length = 50)
-    private String company;
+    @Column(name = "userId", updatable = false, nullable = false)
+    private String userId;
 
     @Valid
     @NotNull
@@ -55,18 +52,6 @@ public class Announcement {
     @Size(max = 32)
     @Column(length = 32)
     private String city;
-
-    @Size(max = 32)
-    @Column(length = 32)
-    private String commune;
-
-    @Size(max = 32)
-    @Column(length = 32)
-    private String district;
-
-    @Size(max = 9)
-    @Column(length = 9)
-    private String phoneNumber;
 
     @Valid
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

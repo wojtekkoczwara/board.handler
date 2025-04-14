@@ -1,0 +1,62 @@
+package com.hublocal.board.handler.service;
+
+import com.hublocal.board.handler.exceptions.CustomException;
+import com.hublocal.board.handler.model.User;
+import com.hublocal.board.handler.repository.UserRepository;
+import com.hublocal.board.handler.utils.HandleFoundObject;
+import com.hublocal.board.handler.utils.UserUtils.UserLogic;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public List<User> listUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public Optional<User> getUserById(String id) {
+        try {
+            return userRepository.findById(UUID.fromString(id));
+        } catch (IllegalArgumentException e) {
+            throw new CustomException("UUID: '" + id + "' must be a valid UUID");
+        }
+    }
+
+    @Override
+    public User saveUser(User user) {
+        UserLogic.validateUserIsAvailableByName(userRepository, user.getUserName());
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User updateUser(String id, User user) {
+        User userDb;
+
+        try {
+            userDb = HandleFoundObject.getUser(this, id);
+            if(!userDb.getUserName().equals(user.getUserName())) {
+                UserLogic.validateUserIsAvailableByName(userRepository, user.getUserName());
+            }
+            user.setId(userDb.getId());
+        } catch (IllegalArgumentException e) {
+            throw new CustomException("UUID: '" + id + "' must be a valid UUID");
+        }
+        return userRepository.saveAndFlush(user);
+    }
+
+    @Override
+    public void deleteUser(UUID uuid) {
+        userRepository.deleteById(uuid);
+
+    }
+}
