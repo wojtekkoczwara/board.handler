@@ -3,6 +3,7 @@ package com.hublocal.board.handler.model;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -34,19 +35,24 @@ public class Announcement {
     private String announcementName;
 
     @NotBlank
+    @Size(max = 1000)
     @Column(name = "announcement_description", length = 1000, updatable = false, nullable = false)
     private String description;
 
     @NotBlank
+    @Size(max = 50)
     @Column(name = "author", length = 50)
     private String author;
 
+    @Size(max = 50)
     @Column(length = 50)
     private String company;
 
-    @Column(name = "category")
-    private String category;
+    @Valid
+    @NotNull
+    private Integer categoryId;
 
+    @Size(max = 32)
     @Column(length = 32)
     private String city;
 
@@ -54,6 +60,7 @@ public class Announcement {
     @Column(length = 32)
     private String commune;
 
+    @Size(max = 32)
     @Column(length = 32)
     private String district;
 

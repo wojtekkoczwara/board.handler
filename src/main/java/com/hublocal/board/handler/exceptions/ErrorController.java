@@ -1,6 +1,7 @@
 package com.hublocal.board.handler.exceptions;
 
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Builder;
 import lombok.Data;
@@ -8,11 +9,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.util.BindErrorUtils;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -22,11 +26,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @ControllerAdvice
+
 public class ErrorController {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity handleBindErrors(MethodArgumentNotValidException exception){
-
         List errorList = exception.getFieldErrors().stream()
                 .map(fieldError -> {
                     Map<String, String > errorMap = new HashMap<>();
@@ -52,12 +56,6 @@ public class ErrorController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(notFoundResponse);
     }
 
-//    @ExceptionHandler(NoResourceFoundException.class)
-//    ResponseEntity handleNotFound(NoResourceFoundException exception){
-//        return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON)
-//                .body(List.of(exception.getStatusCode(), exception.getCause(), exception.getResourcePath()));
-//    }
-
     @ExceptionHandler(CustomException.class)
     ResponseEntity<CustomExceptionResponse> handleCustom(CustomException exception){
 
@@ -69,17 +67,31 @@ public class ErrorController {
     @ExceptionHandler({NoHandlerFoundException.class})
     public ResponseEntity<CustomExceptionResponse> handleNoResourceFoundException(NoHandlerFoundException exception, HttpServletRequest httpServletRequest) {
         log.error("Resource not found", exception);
-//        CustomErrorResource resource = CustomErrorResource.builder()
-//                .timestamp(Instant.now().toString())
-//                .status(exception.getStatusCode().value())
-//                .error(exception.getMessage())
-//                .path(exception.getResourcePath())
-//                .build();
 
         CustomExceptionResponse response = new CustomExceptionResponse(404, "Page not found: " + httpServletRequest.getRequestURI());
         return ResponseEntity
                 .status(exception.getStatusCode())
                 .body(response);
+    }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<CustomExceptionResponse> handleMessageNotReadableException(HttpMessageNotReadableException exception) {
+
+
+        InvalidFormatException exceptionParsed = (InvalidFormatException) exception.getCause();
+        Object fieldPath =  exceptionParsed.getPath().toString().split("com.hublocal.board.handler.model.")[1];
+        Object fieldValue = ((InvalidFormatException) exception.getCause()).getValue().toString();
+
+        CustomExceptionResponse response = new CustomExceptionResponse(400, "Field: " + fieldPath + " has incorrect value: '" + fieldValue + "'. Required type is: " + exceptionParsed.getTargetType());
+        return ResponseEntity
+                .status(response.getCode())
+                .body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception) {
+        CustomExceptionResponse response = new CustomExceptionResponse(400, exception.getMessage());
+
+        return ResponseEntity.status(400).body(response);
     }
 
     @Data
