@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.util.BindErrorUtils;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,10 +89,10 @@ public class ErrorController {
                 .body(response);
     }
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception) {
+    @ExceptionHandler({IllegalArgumentException.class, MissingRequestHeaderException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity handleIllegalArgumentException(Exception exception) {
+        log.error("Error in request, exception: " + exception.getMessage());
         CustomExceptionResponse response = new CustomExceptionResponse(400, exception.getMessage());
-
         return ResponseEntity.status(400).body(response);
     }
 

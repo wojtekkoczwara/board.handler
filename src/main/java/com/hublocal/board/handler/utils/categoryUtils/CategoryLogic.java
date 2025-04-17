@@ -1,12 +1,15 @@
 package com.hublocal.board.handler.utils.categoryUtils;
 
+import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
 import com.hublocal.board.handler.model.Announcement;
 import com.hublocal.board.handler.model.Category;
 import com.hublocal.board.handler.repository.CategoryRepository;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class CategoryLogic {
 
@@ -51,5 +54,19 @@ public class CategoryLogic {
 
     public static boolean verifyCategoryHasAnnouncements(CategoryRepository categoryRepository, int id) {
         return categoryRepository.findById(id).orElseThrow(NotFoundException::new).getAnnouncementSet().isEmpty();
+    }
+
+    public static void validateCategoryIsAvailableByName(CategoryRepository repository, String name) {
+        repository.findByName(name).ifPresent(category -> {
+            throw new CustomException("Category with name: '" + name + "' is already in the database");
+        });
+    }
+
+    public static void verifyCategoryExist(Announcement announcement, CategoryRepository repository) {
+        try {
+            repository.findById(announcement.getCategoryId()).orElseThrow(() -> new CustomException("Category with id: '" + announcement.getCategoryId() + "' not found"));
+        } catch (HttpMessageNotReadableException e) {
+            throw new CustomException(e.getMessage());
+        }
     }
 }

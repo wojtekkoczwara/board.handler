@@ -6,14 +6,12 @@ import com.hublocal.board.handler.model.Category;
 import com.hublocal.board.handler.repository.CategoryRepository;
 import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.categoryUtils.CategoryLogic;
-import com.hublocal.board.handler.utils.categoryUtils.ValidateCategoryUnique;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @Override
     public Category saveCategory(Category category) {
-        ValidateCategoryUnique.validateCategoryIsAvailableByName(categoryRepository, category.getName());
+        CategoryLogic.validateCategoryIsAvailableByName(categoryRepository, category.getName());
         if(category.getParentId() != null) HandleFoundObject.getParentCategory(this, category.getParentId());
         return categoryRepository.save(category);
     }

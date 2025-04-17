@@ -29,12 +29,4 @@ public class Photos {
 
     @NotBlank
     private String photoName;
-
-//    @ManyToOne
-//    @JoinColumn(name = "id")
-//    private Announcement announcement;
-
-
-//    @ManyToOne
-//    private Announcement announcement;
 }

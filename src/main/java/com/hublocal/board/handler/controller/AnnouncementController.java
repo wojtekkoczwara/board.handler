@@ -39,23 +39,23 @@ public class AnnouncementController {
     }
 
     @PostMapping
-    public ResponseEntity<Announcement> createAnnouncement(@Validated @RequestBody Announcement announcement) {
+    public ResponseEntity<Announcement> createAnnouncement(@Validated @RequestBody Announcement announcement, @RequestHeader("userId") String userId) {
 
-        Announcement announcement1 = announcementService.saveAnnouncement(announcement);
+        Announcement announcement1 = announcementService.saveAnnouncement(announcement, userId);
         String id = announcement1.getId().toString();
         return new ResponseEntity<>(getAnnouncement(announcementService, id), HttpStatus.CREATED);
     }
 
     @PutMapping(ANNOUNCEMENT_ID)
-    public ResponseEntity<Announcement> updateById(@PathVariable String id, @Validated @RequestBody Announcement announcement) {
-        return ResponseEntity.ok(announcementService.updateAnnouncement(id, announcement));
+    public ResponseEntity<Announcement> updateById(@PathVariable String id, @Validated @RequestBody Announcement announcement, @RequestHeader("userId") String userId) {
+        return ResponseEntity.ok(announcementService.updateAnnouncement(id, announcement, userId));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(ANNOUNCEMENT_ID)
-    public void deleteById(@PathVariable String id) {
+    public void deleteById(@PathVariable String id,  @RequestHeader("userId") String userId) {
         getAnnouncement(announcementService, id);
-        announcementService.deleteAnnouncement(UUID.fromString(id));
+        announcementService.deleteAnnouncement(id, userId);
     }
 
 }

@@ -2,31 +2,34 @@ package com.hublocal.board.handler.service;
 
 import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
+import com.hublocal.board.handler.model.Announcement;
+import com.hublocal.board.handler.model.Users;
 import com.hublocal.board.handler.repository.AnnouncementRepository;
 import com.hublocal.board.handler.repository.CategoryRepository;
+import com.hublocal.board.handler.repository.UserRepository;
 import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.categoryUtils.CategoryLogic;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import com.hublocal.board.handler.model.Announcement;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindException;
-import org.springframework.validation.BindingResult;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.hublocal.board.handler.utils.UserUtils.UserLogic.verifyUserExist;
+import static com.hublocal.board.handler.utils.announcementUtils.AnnouncementLogic.announcementUserVerify;
+import static com.hublocal.board.handler.utils.categoryUtils.CategoryLogic.verifyCategoryExist;
+
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementRepository announcementRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<Announcement> listAnnouncements() {
@@ -42,46 +45,54 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
-    @Transactional
     @Override
-    public Announcement saveAnnouncement(Announcement announcement) {
-        verifyCategoryExist(announcement);
+    @Transactional
+    public Announcement saveAnnouncement(Announcement announcement, String userId) {
+        UUID userUuid = UUID.fromString(userId);
+        verifyUserExist(userUuid, userRepository);
 
+        verifyCategoryExist(announcement, categoryRepository);
         if (!CategoryLogic.verifyCategoryHasNoChildren(categoryRepository, announcement.getCategoryId())) {
             throw new CustomException("Category: '" + announcement.getCategoryId() + "' has children, category in the " +
                     "request must be lowest available level");
         }
-        return announcementRepository.save(announcement);
+
+        Announcement announcement1 = announcementRepository.saveAndFlush(announcement);
+        Users user1 = userRepository.findById(userUuid).orElseThrow(NotFoundException::new);
+        user1.getAnnouncements().add(announcement1);
+        userRepository.saveAndFlush(user1);
+        return announcement1;
     }
 
+
     @Override
-    public Announcement updateAnnouncement(String id, Announcement announcement) {
-        verifyCategoryExist(announcement);
+    public Announcement updateAnnouncement(String id, Announcement announcement, String userId) {
+        announcementUserVerify(id, userId, userRepository);
+        verifyCategoryExist(announcement, categoryRepository);
+
         if (!CategoryLogic.verifyCategoryHasNoChildren(categoryRepository, announcement.getCategoryId())) {
             throw new CustomException("Category: '" + announcement.getCategoryId() + "' has children, category in the " +
                     "request must be lowest available level");
         }
+
         Announcement announcementDb;
+
         try {
             announcementDb = HandleFoundObject.getAnnouncement(this, id);
-            verifyCategoryExist(announcement);
+
             announcement.setId(announcementDb.getId());
         } catch (IllegalArgumentException e) {
             throw new CustomException("UUID: '" + id + "' must be a valid UUID");
         }
+
         return announcementRepository.saveAndFlush(announcement);
     }
 
     @Override
-    public void deleteAnnouncement(UUID id) {
-        announcementRepository.deleteById(id);
+    public void deleteAnnouncement(String id, String userId) {
+        announcementUserVerify(id, userId, userRepository);
+        announcementRepository.deleteById(UUID.fromString(id));
     }
 
-    private void verifyCategoryExist(Announcement announcement) {
-        try {
-            categoryRepository.findById(announcement.getCategoryId()).orElseThrow(() -> new CustomException("Category with id: '" + announcement.getCategoryId() + "' not found"));
-        } catch (HttpMessageNotReadableException e) {
-            throw new CustomException(e.getMessage());
-        }
-    }
+
 }
