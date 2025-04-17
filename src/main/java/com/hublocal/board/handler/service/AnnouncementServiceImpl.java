@@ -2,6 +2,7 @@ package com.hublocal.board.handler.service;
 
 import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
+import com.hublocal.board.handler.model.Announcement;
 import com.hublocal.board.handler.model.Users;
 import com.hublocal.board.handler.repository.AnnouncementRepository;
 import com.hublocal.board.handler.repository.CategoryRepository;
@@ -10,16 +11,16 @@ import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.categoryUtils.CategoryLogic;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Service;
-
-import com.hublocal.board.handler.model.Announcement;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
+import static com.hublocal.board.handler.utils.UserUtils.UserLogic.verifyUserExist;
+import static com.hublocal.board.handler.utils.announcementUtils.AnnouncementLogic.announcementUserVerify;
+import static com.hublocal.board.handler.utils.categoryUtils.CategoryLogic.verifyCategoryExist;
 
 @Service
 @Slf4j
@@ -48,9 +49,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Transactional
     public Announcement saveAnnouncement(Announcement announcement, String userId) {
         UUID userUuid = UUID.fromString(userId);
-        verifyUserExist(userUuid);
+        verifyUserExist(userUuid, userRepository);
 
-        verifyCategoryExist(announcement);
+        verifyCategoryExist(announcement, categoryRepository);
         if (!CategoryLogic.verifyCategoryHasNoChildren(categoryRepository, announcement.getCategoryId())) {
             throw new CustomException("Category: '" + announcement.getCategoryId() + "' has children, category in the " +
                     "request must be lowest available level");
@@ -66,8 +67,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     @Override
     public Announcement updateAnnouncement(String id, Announcement announcement, String userId) {
-        announcementUserVerify(id, userId);
-        verifyCategoryExist(announcement);
+        announcementUserVerify(id, userId, userRepository);
+        verifyCategoryExist(announcement, categoryRepository);
 
         if (!CategoryLogic.verifyCategoryHasNoChildren(categoryRepository, announcement.getCategoryId())) {
             throw new CustomException("Category: '" + announcement.getCategoryId() + "' has children, category in the " +
@@ -89,40 +90,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     @Override
     public void deleteAnnouncement(String id, String userId) {
-        announcementUserVerify(id, userId);
+        announcementUserVerify(id, userId, userRepository);
         announcementRepository.deleteById(UUID.fromString(id));
     }
 
-    private void verifyCategoryExist(Announcement announcement) {
-        try {
-            categoryRepository.findById(announcement.getCategoryId()).orElseThrow(() -> new CustomException("Category with id: '" + announcement.getCategoryId() + "' not found"));
-        } catch (HttpMessageNotReadableException e) {
-            throw new CustomException(e.getMessage());
-        }
-    }
 
-    private void announcementUserVerify(String id, String userId) {
-        UUID userUuid = UUID.fromString(userId);
-        verifyUserExist(userUuid);
-        verifyUserHasAnnouncement(id, userId);
-    }
-
-    private void verifyUserExist(UUID userId) {
-        try {
-           userRepository.findById(userId).orElseThrow(() -> new CustomException("User with id: '" + userId + "' not found"));
-        } catch (HttpMessageNotReadableException e) {
-            throw new CustomException(e.getMessage());
-        }
-    }
-
-    private void verifyUserHasAnnouncement(String id, String userId) {
-        int size = userRepository.findById(UUID.fromString(userId)).orElseThrow(NotFoundException::new)
-                .getAnnouncements().stream().filter(announcement -> announcement.getId().toString().equals(id))
-                .collect(Collectors.toSet()).size();
-
-        if(size == 0) {
-            throw new CustomException(String
-                    .format("Announcement with id: '%s' does not belong to the user with id: '%s'", id, userId));
-        }
-    }
 }

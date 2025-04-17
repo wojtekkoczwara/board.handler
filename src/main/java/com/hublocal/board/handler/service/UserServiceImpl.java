@@ -1,10 +1,7 @@
 package com.hublocal.board.handler.service;
 
 import com.hublocal.board.handler.exceptions.CustomException;
-import com.hublocal.board.handler.exceptions.NotFoundException;
-import com.hublocal.board.handler.model.Announcement;
 import com.hublocal.board.handler.model.Users;
-import com.hublocal.board.handler.repository.AnnouncementRepository;
 import com.hublocal.board.handler.repository.UserRepository;
 import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.UserUtils.UserLogic;
@@ -12,15 +9,15 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final AnnouncementRepository announcementRepository;
 
     @Override
     public List<Users> listUsers() {
