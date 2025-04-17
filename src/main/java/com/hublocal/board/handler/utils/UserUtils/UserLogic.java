@@ -1,7 +1,16 @@
 package com.hublocal.board.handler.utils.UserUtils;
 
 import com.hublocal.board.handler.exceptions.CustomException;
+import com.hublocal.board.handler.exceptions.NotFoundException;
+import com.hublocal.board.handler.model.Announcement;
+import com.hublocal.board.handler.repository.AnnouncementRepository;
 import com.hublocal.board.handler.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class UserLogic {
 

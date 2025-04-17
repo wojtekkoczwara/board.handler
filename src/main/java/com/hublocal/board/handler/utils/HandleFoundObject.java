@@ -4,11 +4,10 @@ import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
 import com.hublocal.board.handler.model.Announcement;
 import com.hublocal.board.handler.model.Category;
-import com.hublocal.board.handler.model.User;
+import com.hublocal.board.handler.model.Users;
 import com.hublocal.board.handler.service.AnnouncementService;
 import com.hublocal.board.handler.service.CategoryService;
 import com.hublocal.board.handler.service.UserService;
-import jakarta.persistence.criteria.CriteriaBuilder;
 
 import java.util.Objects;
 
@@ -22,7 +21,7 @@ public class HandleFoundObject {
         return Objects.requireNonNull(service.getCategoryById(id).orElseThrow(NotFoundException::new));
     }
 
-    public static User getUser(UserService service, String id) {
+    public static Users getUser(UserService service, String id) {
         return Objects.requireNonNull(service.getUserById(id).orElseThrow(NotFoundException::new));
     }
 

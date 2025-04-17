@@ -1,19 +1,19 @@
 package com.hublocal.board.handler.service;
 
-import com.hublocal.board.handler.model.User;
+import com.hublocal.board.handler.model.Users;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface UserService {
-    List<User> listUsers();
+    List<Users> listUsers();
 
-    Optional<User> getUserById(String id);
+    Optional<Users> getUserById(String id);
 
-    User saveUser(User user);
+    Users saveUser(Users user);
 
-    User updateUser(String id, User user);
+    Users updateUser(String id, Users user);
 
     void deleteUser(UUID uuid);
 }

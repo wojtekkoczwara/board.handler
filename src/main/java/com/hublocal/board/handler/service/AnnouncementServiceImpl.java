@@ -2,27 +2,27 @@ package com.hublocal.board.handler.service;
 
 import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
+import com.hublocal.board.handler.model.Users;
 import com.hublocal.board.handler.repository.AnnouncementRepository;
 import com.hublocal.board.handler.repository.CategoryRepository;
 import com.hublocal.board.handler.repository.UserRepository;
 import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.categoryUtils.CategoryLogic;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Service;
 
 import com.hublocal.board.handler.model.Announcement;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindException;
-import org.springframework.validation.BindingResult;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AnnouncementServiceImpl implements AnnouncementService {
 
@@ -44,21 +44,31 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
-    @Transactional
     @Override
-    public Announcement saveAnnouncement(Announcement announcement) {
+    @Transactional
+    public Announcement saveAnnouncement(Announcement announcement, String userId) {
+        UUID userUuid = UUID.fromString(userId);
+        verifyUserExist(userUuid);
+
         verifyCategoryExist(announcement);
-        verifyUserExist(announcement);
         if (!CategoryLogic.verifyCategoryHasNoChildren(categoryRepository, announcement.getCategoryId())) {
             throw new CustomException("Category: '" + announcement.getCategoryId() + "' has children, category in the " +
                     "request must be lowest available level");
         }
-        return announcementRepository.save(announcement);
+
+        Announcement announcement1 = announcementRepository.saveAndFlush(announcement);
+        Users user1 = userRepository.findById(userUuid).orElseThrow(NotFoundException::new);
+        user1.getAnnouncements().add(announcement1);
+        userRepository.saveAndFlush(user1);
+        return announcement1;
     }
 
+
     @Override
-    public Announcement updateAnnouncement(String id, Announcement announcement) {
+    public Announcement updateAnnouncement(String id, Announcement announcement, String userId) {
+        announcementUserVerify(id, userId);
         verifyCategoryExist(announcement);
+
         if (!CategoryLogic.verifyCategoryHasNoChildren(categoryRepository, announcement.getCategoryId())) {
             throw new CustomException("Category: '" + announcement.getCategoryId() + "' has children, category in the " +
                     "request must be lowest available level");
@@ -69,21 +79,18 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         try {
             announcementDb = HandleFoundObject.getAnnouncement(this, id);
 
-            if (!announcementDb.getUserId().equals(announcement.getUserId())) {
-                throw new CustomException("UserId cannot be changed. Current userID: '" + announcementDb.getUserId() + "', new userId: '" + announcement.getUserId() + "'.");
-            }
-
-            verifyCategoryExist(announcement);
             announcement.setId(announcementDb.getId());
         } catch (IllegalArgumentException e) {
             throw new CustomException("UUID: '" + id + "' must be a valid UUID");
         }
+
         return announcementRepository.saveAndFlush(announcement);
     }
 
     @Override
-    public void deleteAnnouncement(UUID id) {
-        announcementRepository.deleteById(id);
+    public void deleteAnnouncement(String id, String userId) {
+        announcementUserVerify(id, userId);
+        announcementRepository.deleteById(UUID.fromString(id));
     }
 
     private void verifyCategoryExist(Announcement announcement) {
@@ -94,11 +101,28 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
-    private void verifyUserExist(Announcement announcement) {
+    private void announcementUserVerify(String id, String userId) {
+        UUID userUuid = UUID.fromString(userId);
+        verifyUserExist(userUuid);
+        verifyUserHasAnnouncement(id, userId);
+    }
+
+    private void verifyUserExist(UUID userId) {
         try {
-            userRepository.findById(UUID.fromString(announcement.getUserId())).orElseThrow(() -> new CustomException("User with id: '" + announcement.getUserId() + "' not found"));
+           userRepository.findById(userId).orElseThrow(() -> new CustomException("User with id: '" + userId + "' not found"));
         } catch (HttpMessageNotReadableException e) {
             throw new CustomException(e.getMessage());
+        }
+    }
+
+    private void verifyUserHasAnnouncement(String id, String userId) {
+        int size = userRepository.findById(UUID.fromString(userId)).orElseThrow(NotFoundException::new)
+                .getAnnouncements().stream().filter(announcement -> announcement.getId().toString().equals(id))
+                .collect(Collectors.toSet()).size();
+
+        if(size == 0) {
+            throw new CustomException(String
+                    .format("Announcement with id: '%s' does not belong to the user with id: '%s'", id, userId));
         }
     }
 }

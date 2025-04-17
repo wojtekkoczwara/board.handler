@@ -1,9 +1,12 @@
 package com.hublocal.board.handler.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -11,6 +14,8 @@ import org.hibernate.type.SqlTypes;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import static org.hibernate.annotations.CascadeType.*;
 
 @Getter
 @Setter
@@ -20,7 +25,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
-public class User {
+public class Users {
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -29,7 +34,8 @@ public class User {
     @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
 
-    @NotBlank
+    @Valid
+    @Enumerated(EnumType.ORDINAL)
     private PermissionLevel permissionLevel;
 
     @NotBlank
@@ -68,7 +74,7 @@ public class User {
     @Column(length = 9)
     private String phoneNumber;
 
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(referencedColumnName = "userId", name = "userId")
     private Set<Announcement> announcements = new HashSet<>();
 

@@ -1,5 +1,7 @@
 package com.hublocal.board.handler.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -31,19 +33,13 @@ public class Announcement {
 
     @NotBlank
     @Size(max = 50)
-    @Column(length = 50, updatable = false, nullable = false)
+    @Column(length = 50, updatable = true, nullable = false)
     private String announcementName;
 
     @NotBlank
     @Size(max = 1000)
     @Column(name = "announcement_description", length = 1000, updatable = false, nullable = false)
     private String description;
-
-    @Valid
-    @NotNull
-    @NotBlank
-    @Column(name = "userId", updatable = false, nullable = false)
-    private String userId;
 
     @Valid
     @NotNull

@@ -1,30 +1,34 @@
 package com.hublocal.board.handler.service;
 
 import com.hublocal.board.handler.exceptions.CustomException;
-import com.hublocal.board.handler.model.User;
+import com.hublocal.board.handler.exceptions.NotFoundException;
+import com.hublocal.board.handler.model.Announcement;
+import com.hublocal.board.handler.model.Users;
+import com.hublocal.board.handler.repository.AnnouncementRepository;
 import com.hublocal.board.handler.repository.UserRepository;
 import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.UserUtils.UserLogic;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final AnnouncementRepository announcementRepository;
 
     @Override
-    public List<User> listUsers() {
+    public List<Users> listUsers() {
         return userRepository.findAll();
     }
 
     @Override
-    public Optional<User> getUserById(String id) {
+    public Optional<Users> getUserById(String id) {
         try {
             return userRepository.findById(UUID.fromString(id));
         } catch (IllegalArgumentException e) {
@@ -33,14 +37,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User saveUser(User user) {
+    public Users saveUser(Users user) {
         UserLogic.validateUserIsAvailableByName(userRepository, user.getUserName());
         return userRepository.save(user);
     }
 
     @Override
-    public User updateUser(String id, User user) {
-        User userDb;
+    public Users updateUser(String id, Users user) {
+        Users userDb;
 
         try {
             userDb = HandleFoundObject.getUser(this, id);
@@ -48,6 +52,9 @@ public class UserServiceImpl implements UserService {
                 UserLogic.validateUserIsAvailableByName(userRepository, user.getUserName());
             }
             user.setId(userDb.getId());
+            if(user.getAnnouncements().isEmpty()) {
+                user.getAnnouncements().addAll(userDb.getAnnouncements());
+            }
         } catch (IllegalArgumentException e) {
             throw new CustomException("UUID: '" + id + "' must be a valid UUID");
         }
@@ -55,8 +62,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(UUID uuid) {
         userRepository.deleteById(uuid);
-
     }
 }
