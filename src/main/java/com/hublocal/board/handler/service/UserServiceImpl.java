@@ -43,6 +43,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UsersDto saveUser(UsersDto usersDto) {
+        validateUserName(usersDto.getUserName());
+
         verifyEmailCorrect(userRepository, usersDto.getEmail());
         validateUserIsAvailableByName(userRepository, usersDto.getUserName());
         Users userEntity = usersMapper.toEntity(usersDto);
@@ -51,6 +53,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UsersDto updateUser(String id, UsersDto userDto) {
+        validateUserName(userDto.getUserName());
+
         verifyEmailCorrect(userRepository, userDto.getEmail());
         Users userDb;
         try {

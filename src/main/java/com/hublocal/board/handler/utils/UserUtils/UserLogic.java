@@ -1,5 +1,6 @@
 package com.hublocal.board.handler.utils.UserUtils;
 
+import com.github.ankurpathak.username.UsernameValidator;
 import com.hublocal.board.handler.entities.Users;
 import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
@@ -53,6 +54,14 @@ public class UserLogic {
     public static void verifyEmailCorrect(UserRepository repository, String email) {
         emailValidation(email);
         verifyEmailAvailable(repository, email);
+    }
+
+    public static void validateUserName(String userName) {
+        boolean isAlphaNumeric = UsernameValidator.containOnlyAlphaNumeric(userName, true, false, true, false);
+        boolean startWithLetter = UsernameValidator.startWithAlphabet(userName);
+
+        if(!isAlphaNumeric || !startWithLetter) throw new CustomException("UserName " + userName + " is incorrect. It " +
+                "must contain only letters, numbers and underscore sign. It must start with letter");
     }
 
 }
