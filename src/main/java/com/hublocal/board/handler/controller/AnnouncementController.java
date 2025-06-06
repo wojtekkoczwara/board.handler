@@ -1,7 +1,8 @@
 package com.hublocal.board.handler.controller;
 
 import com.hublocal.board.handler.exceptions.NotFoundException;
-import com.hublocal.board.handler.model.Announcement;
+import com.hublocal.board.handler.entities.Announcement;
+import com.hublocal.board.handler.model.AnnouncementDto;
 import com.hublocal.board.handler.service.AnnouncementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 import static com.hublocal.board.handler.utils.HandleFoundObject.getAnnouncement;
 
@@ -29,26 +29,26 @@ public class AnnouncementController {
     private final AnnouncementService announcementService;
 
     @GetMapping
-    public List<Announcement> findAll() {
+    public List<AnnouncementDto> findAll() {
         return announcementService.listAnnouncements();
     }
 
     @GetMapping(ANNOUNCEMENT_ID)
-    public Announcement getById(@PathVariable String id) {
+    public AnnouncementDto getById(@PathVariable String id) {
         return announcementService.getAnnouncementById(id).orElseThrow(NotFoundException::new);
     }
 
     @PostMapping
-    public ResponseEntity<Announcement> createAnnouncement(@Validated @RequestBody Announcement announcement, @RequestHeader("userId") String userId) {
+    public ResponseEntity<AnnouncementDto> createAnnouncement(@Validated @RequestBody AnnouncementDto announcementDto, @RequestHeader("userId") String userId) {
 
-        Announcement announcement1 = announcementService.saveAnnouncement(announcement, userId);
+        AnnouncementDto announcement1 = announcementService.saveAnnouncement(announcementDto, userId);
         String id = announcement1.getId().toString();
         return new ResponseEntity<>(getAnnouncement(announcementService, id), HttpStatus.CREATED);
     }
 
     @PutMapping(ANNOUNCEMENT_ID)
-    public ResponseEntity<Announcement> updateById(@PathVariable String id, @Validated @RequestBody Announcement announcement, @RequestHeader("userId") String userId) {
-        return ResponseEntity.ok(announcementService.updateAnnouncement(id, announcement, userId));
+    public ResponseEntity<AnnouncementDto> updateById(@PathVariable String id, @Validated @RequestBody AnnouncementDto announcementDto, @RequestHeader("userId") String userId) {
+        return ResponseEntity.ok(announcementService.updateAnnouncement(id, announcementDto, userId));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -1,9 +1,11 @@
 package com.hublocal.board.handler.utils.categoryUtils;
 
+import com.hublocal.board.handler.entities.Announcement;
+import com.hublocal.board.handler.entities.Category;
 import com.hublocal.board.handler.exceptions.CustomException;
 import com.hublocal.board.handler.exceptions.NotFoundException;
-import com.hublocal.board.handler.model.Announcement;
-import com.hublocal.board.handler.model.Category;
+import com.hublocal.board.handler.mappers.AnnouncementMapper;
+import com.hublocal.board.handler.model.AnnouncementDto;
 import com.hublocal.board.handler.repository.CategoryRepository;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
@@ -13,11 +15,12 @@ import java.util.List;
 
 public class CategoryLogic {
 
-    public static List<Announcement> getAnnouncementsByCategory(CategoryRepository repository, Integer parentId) {
+    public static List<AnnouncementDto> getAnnouncementsByCategoryDto(CategoryRepository repository, AnnouncementMapper mapper, Integer parentId) {
         //find all categories by parent id
         List<Category> categories = repository.findAllByParentId(parentId).orElse(Collections.emptyList());
+
         if (categories.isEmpty()) return repository.findById(parentId).orElseThrow(NotFoundException::new)
-                .getAnnouncementSet().stream().toList();
+                .getAnnouncementSet().stream().map(mapper::toDto).toList();
 
         List<Category> finalCategories = new ArrayList<>();
         //verify if category has children (find all categories by this parent id -> if list size is = 0)
@@ -45,11 +48,12 @@ public class CategoryLogic {
         finalCategories.forEach(category -> {
            announcements.addAll(category.getAnnouncementSet());
         });
-       return announcements;
+
+       return announcements.stream().map(mapper::toDto).toList();
     }
 
     public static boolean verifyCategoryHasNoChildren(CategoryRepository repository, Integer categoryId) {
-        return repository.findAllByParentId(categoryId).orElseThrow(NotFoundException::new).size() == 0;
+        return repository.findAllByParentId(categoryId).orElseThrow(NotFoundException::new).isEmpty();
     }
 
     public static boolean verifyCategoryHasAnnouncements(CategoryRepository categoryRepository, int id) {
@@ -62,7 +66,7 @@ public class CategoryLogic {
         });
     }
 
-    public static void verifyCategoryExist(Announcement announcement, CategoryRepository repository) {
+    public static void verifyCategoryExist(AnnouncementDto announcement, CategoryRepository repository) {
         try {
             repository.findById(announcement.getCategoryId()).orElseThrow(() -> new CustomException("Category with id: '" + announcement.getCategoryId() + "' not found"));
         } catch (HttpMessageNotReadableException e) {

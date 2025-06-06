@@ -1,8 +1,11 @@
 package com.hublocal.board.handler.service;
 
 import com.hublocal.board.handler.exceptions.CustomException;
-import com.hublocal.board.handler.model.Announcement;
-import com.hublocal.board.handler.model.Category;
+import com.hublocal.board.handler.entities.Category;
+import com.hublocal.board.handler.mappers.AnnouncementMapper;
+import com.hublocal.board.handler.mappers.CategoryMapper;
+import com.hublocal.board.handler.model.AnnouncementDto;
+import com.hublocal.board.handler.model.CategoryDto;
 import com.hublocal.board.handler.repository.CategoryRepository;
 import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.categoryUtils.CategoryLogic;
@@ -12,22 +15,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
+    private final AnnouncementMapper announcementMapper;
 
     @Override
-    public List<Category> listCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDto> listCategories() {
+        return categoryRepository.findAll().stream().map(categoryMapper::toDto).collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Category> getCategoryById(int id) {
+    public Optional<CategoryDto> getCategoryById(int id) {
         try {
-            return categoryRepository.findById(id);
+            return categoryRepository.findById(id).map(categoryMapper::toDto);
         } catch (IllegalArgumentException e) {
             throw new CustomException("Id: '" + id + "' must be a number");
         }
@@ -42,19 +48,20 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category updateCategory(int id, Category category) {
+    public CategoryDto updateCategory(int id, CategoryDto categoryDto) {
         Category categoryDb;
         try {
-            categoryDb = HandleFoundObject.getCategory(this, id);
-            category.setId(categoryDb.getId());
-            if(category.getAnnouncementSet().size() == 0) {
-                category.setAnnouncementSet(categoryDb.getAnnouncementSet());
+            categoryDb = HandleFoundObject.getCategoryFromRepository(categoryRepository, id);
+            categoryDto.setId(categoryDb.getId());
 
-            }
+            Category categoryToSave = categoryMapper.toEntity(categoryDto);
+            categoryToSave.setId(categoryDb.getId());
+            categoryToSave.setAnnouncementSet(categoryDb.getAnnouncementSet());
+
+            return categoryMapper.toDto(categoryRepository.saveAndFlush(categoryToSave));
         } catch (IllegalArgumentException e) {
             throw new CustomException("Id: '" + id + "' must be a number");
         }
-        return categoryRepository.save(category);
     }
 
     @Override
@@ -72,8 +79,8 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<Announcement> listAnnouncementsByCategoryId(Integer categoryId) {
-        return CategoryLogic.getAnnouncementsByCategory(categoryRepository, categoryId);
+    public List<AnnouncementDto> listAnnouncementsByCategoryId(Integer categoryId) {
+        return CategoryLogic.getAnnouncementsByCategoryDto(categoryRepository, announcementMapper, categoryId);
     }
 
 

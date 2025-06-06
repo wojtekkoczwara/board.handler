@@ -1,12 +1,10 @@
-package com.hublocal.board.handler.model;
+package com.hublocal.board.handler.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -15,13 +13,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.hibernate.annotations.CascadeType.*;
-
 @Getter
 @Setter
-@ToString
 @Builder
-@EqualsAndHashCode
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -78,7 +72,7 @@ public class Users {
     @JoinColumn(referencedColumnName = "userId", name = "userId")
     private Set<Announcement> announcements = new HashSet<>();
 
-    private enum PermissionLevel {
+    public enum PermissionLevel {
         GUEST, USER, ADMIN, SUPER_ADMIN
     }
 }

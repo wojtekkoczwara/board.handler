@@ -1,8 +1,10 @@
 package com.hublocal.board.handler.controller.admin;
 
 import com.hublocal.board.handler.exceptions.NotFoundException;
-import com.hublocal.board.handler.model.Announcement;
-import com.hublocal.board.handler.model.Category;
+import com.hublocal.board.handler.entities.Announcement;
+import com.hublocal.board.handler.entities.Category;
+import com.hublocal.board.handler.model.AnnouncementDto;
+import com.hublocal.board.handler.model.CategoryDto;
 import com.hublocal.board.handler.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +15,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 
 import static com.hublocal.board.handler.utils.HandleFoundObject.getCategory;
 
@@ -30,22 +31,22 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public List<Category> findAll() {
+    public List<CategoryDto> findAll() {
         return categoryService.listCategories();
     }
 
     @GetMapping(CATEGORY_PATH_ID)
-    public Category getById(@PathVariable("categoryId") Integer categoryId) {
+    public CategoryDto getById(@PathVariable("categoryId") Integer categoryId) {
         return categoryService.getCategoryById(categoryId).orElseThrow(NotFoundException::new);
     }
 
     @GetMapping(LIST_ANNOUNCEMENTS_BY_CATEGORY)
-    public List<Announcement> getALlAnnouncementsById(@PathVariable("categoryId") Integer categoryId) {
+    public List<AnnouncementDto> getALlAnnouncementsByCategoryId(@PathVariable("categoryId") Integer categoryId) {
         return categoryService.listAnnouncementsByCategoryId(categoryId);
     }
 
     @PostMapping
-    public ResponseEntity<Category> createCategory(@Validated @RequestBody Category category) {
+    public ResponseEntity<CategoryDto> createCategory(@Validated @RequestBody Category category) {
 
         Category category1 = categoryService.saveCategory(category);
         int id = category1.getId();
@@ -53,7 +54,7 @@ public class CategoryController {
     }
 
     @PutMapping(CATEGORY_PATH_ID)
-    public ResponseEntity<Category> updateById(@PathVariable int categoryId, @Validated @RequestBody Category category) {
+    public ResponseEntity<CategoryDto> updateById(@PathVariable int categoryId, @Validated @RequestBody CategoryDto category) {
         return ResponseEntity.ok(categoryService.updateCategory(categoryId, category));
     }
 

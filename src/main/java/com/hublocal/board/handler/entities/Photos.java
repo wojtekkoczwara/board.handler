@@ -1,4 +1,4 @@
-package com.hublocal.board.handler.model;
+package com.hublocal.board.handler.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -9,12 +9,10 @@ import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
-@Data
 @Getter
 @Setter
 @ToString
 @Builder
-@EqualsAndHashCode
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity

@@ -1,20 +1,17 @@
-package com.hublocal.board.handler.model;
+package com.hublocal.board.handler.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @Setter
-@ToString
 @Builder
-@EqualsAndHashCode
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
