@@ -1,9 +1,11 @@
 package com.hublocal.board.handler.service;
 
 import com.hublocal.board.handler.exceptions.CustomException;
-import com.hublocal.board.handler.model.Users;
+import com.hublocal.board.handler.entities.Users;
+import com.hublocal.board.handler.mappers.AnnouncementMapper;
+import com.hublocal.board.handler.mappers.UsersMapper;
+import com.hublocal.board.handler.model.UsersDto;
 import com.hublocal.board.handler.repository.UserRepository;
-import com.hublocal.board.handler.utils.HandleFoundObject;
 import com.hublocal.board.handler.utils.UserUtils.UserLogic;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,55 +14,67 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.hublocal.board.handler.utils.HandleFoundObject.getUserFromRepository;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UsersMapper usersMapper;
+    private final AnnouncementMapper announcementMapper;
 
     @Override
-    public List<Users> listUsers() {
-        return userRepository.findAll();
+    public List<UsersDto> listUsers() {
+        return userRepository.findAll().stream().map(usersMapper::toDto).toList();
     }
 
     @Override
-    public Optional<Users> getUserById(String id) {
+    public Optional<UsersDto> getUserById(String id) {
         try {
-            return userRepository.findById(UUID.fromString(id));
+            return userRepository.findById(UUID.fromString(id)).map(usersMapper::toDto);
         } catch (IllegalArgumentException e) {
             throw new CustomException("UUID: '" + id + "' must be a valid UUID");
         }
     }
 
     @Override
-    public Users saveUser(Users user) {
-        UserLogic.validateUserIsAvailableByName(userRepository, user.getUserName());
-        return userRepository.save(user);
+    public UsersDto saveUser(UsersDto usersDto) {
+        UserLogic.validateUserIsAvailableByName(userRepository, usersDto.getUserName());
+        Users userEntity = usersMapper.toEntity(usersDto);
+        return usersMapper.toDto(userRepository.save(userEntity));
     }
 
     @Override
-    public Users updateUser(String id, Users user) {
+    public UsersDto updateUser(String id, UsersDto userDto) {
         Users userDb;
-
         try {
-            userDb = HandleFoundObject.getUser(this, id);
-            if(!userDb.getUserName().equals(user.getUserName())) {
-                UserLogic.validateUserIsAvailableByName(userRepository, user.getUserName());
+            userDb = getUserFromRepository(userRepository, id);
+            if(!userDb.getUserName().equals(userDto.getUserName())) {
+                UserLogic.validateUserIsAvailableByName(userRepository, userDto.getUserName());
             }
-            user.setId(userDb.getId());
-            if(user.getAnnouncements().isEmpty()) {
-                user.getAnnouncements().addAll(userDb.getAnnouncements());
-            }
+
+            Users userToSave = usersMapper.toEntity(userDto);
+            userToSave.setId(userDb.getId());
+
+            userToSave.setAnnouncements(userDb.getAnnouncements());
+            return usersMapper.toDto(userRepository.saveAndFlush(userToSave));
         } catch (IllegalArgumentException e) {
             throw new CustomException("UUID: '" + id + "' must be a valid UUID");
         }
-        return userRepository.saveAndFlush(user);
     }
 
     @Override
     @Transactional
     public void deleteUser(UUID uuid) {
         userRepository.deleteById(uuid);
+    }
+
+    @Override
+    public List<String> getUserAnnouncementByUserId(String id) {
+        return getUserFromRepository(userRepository, id).getAnnouncements().stream()
+                .map(announcement -> announcement.getId().toString()).toList();
     }
 }

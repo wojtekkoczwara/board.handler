@@ -1,17 +1,18 @@
 package com.hublocal.board.handler.service;
 
-import com.hublocal.board.handler.model.Announcement;
-import com.hublocal.board.handler.model.Category;
+import com.hublocal.board.handler.entities.Announcement;
+import com.hublocal.board.handler.entities.Category;
+import com.hublocal.board.handler.model.AnnouncementDto;
+import com.hublocal.board.handler.model.CategoryDto;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface CategoryService {
-    List<Category> listCategories();
-    Optional<Category> getCategoryById(int id);
+    List<CategoryDto> listCategories();
+    Optional<CategoryDto> getCategoryById(int id);
     Category saveCategory(Category category);
-    Category updateCategory(int id, Category category);
+    CategoryDto updateCategory(int id, CategoryDto categoryDto);
     void deleteCategory(int id);
-    List<Announcement> listAnnouncementsByCategoryId(Integer categoryId);
+    List<AnnouncementDto> listAnnouncementsByCategoryId(Integer categoryId);
 }

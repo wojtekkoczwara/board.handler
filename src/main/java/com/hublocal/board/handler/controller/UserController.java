@@ -1,7 +1,9 @@
 package com.hublocal.board.handler.controller;
 
 import com.hublocal.board.handler.exceptions.NotFoundException;
-import com.hublocal.board.handler.model.Users;
+import com.hublocal.board.handler.entities.Users;
+import com.hublocal.board.handler.model.AnnouncementDto;
+import com.hublocal.board.handler.model.UsersDto;
 import com.hublocal.board.handler.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,30 +26,36 @@ public class UserController {
 
     public static final String USERS_PATH = "/api/v1/users";
     public static final String USER_ID = "/{id}";
+    public static final String USER_ANNOUNCEMENTS = USER_ID + "/announcements";
 
     @Autowired
     private final UserService userService;
 
     @GetMapping
-    public List<Users> findAll() {
+    public List<UsersDto> findAll() {
         return userService.listUsers();
     }
 
     @GetMapping(USER_ID)
-    public Users getById(@PathVariable String id) {
+    public UsersDto getById(@PathVariable String id) {
         return userService.getUserById(id).orElseThrow(NotFoundException::new);
     }
 
-    @PostMapping
-    public ResponseEntity<Users> createAnnouncement(@Validated @RequestBody Users user) {
+    @GetMapping(USER_ANNOUNCEMENTS)
+    public List<String> getUserAnnouncementsIdByUserId(@PathVariable String id){
+        return userService.getUserAnnouncementByUserId(id);
+    }
 
-        Users user1 = userService.saveUser(user);
+    @PostMapping
+    public ResponseEntity<UsersDto> createUser(@Validated @RequestBody UsersDto user) {
+
+        UsersDto user1 = userService.saveUser(user);
         String id = user1.getId().toString();
         return new ResponseEntity<>(getUser(userService, id), HttpStatus.CREATED);
     }
 
     @PutMapping(USER_ID)
-    public ResponseEntity<Users> updateById(@PathVariable String id, @Validated @RequestBody Users user) {
+    public ResponseEntity<UsersDto> updateById(@PathVariable String id, @Validated @RequestBody UsersDto user) {
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
 

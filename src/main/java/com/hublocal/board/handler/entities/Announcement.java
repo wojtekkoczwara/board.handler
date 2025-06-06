@@ -1,7 +1,5 @@
-package com.hublocal.board.handler.model;
+package com.hublocal.board.handler.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -16,9 +14,7 @@ import java.util.*;
 
 @Getter
 @Setter
-@ToString
 @Builder
-@EqualsAndHashCode
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -53,4 +49,5 @@ public class Announcement {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(referencedColumnName = "announcementId", name = "announcementId")
     private Set<Photos> photos = new HashSet<>();
+
 }

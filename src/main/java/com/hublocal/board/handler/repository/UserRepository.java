@@ -1,6 +1,6 @@
 package com.hublocal.board.handler.repository;
 
-import com.hublocal.board.handler.model.Users;
+import com.hublocal.board.handler.entities.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
