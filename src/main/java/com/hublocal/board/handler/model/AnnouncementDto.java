@@ -10,7 +10,10 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -36,5 +39,9 @@ public class AnnouncementDto {
 
     @Valid
     private Set<Photos> photos = new HashSet<>();
+
+    private final LocalDateTime createdDate;
+
+    private LocalDateTime modifiedDate;
 
 }
