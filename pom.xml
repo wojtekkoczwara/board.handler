@@ -108,6 +108,12 @@
 			<artifactId>commons-validator</artifactId>
 			<version>1.9.0</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.github.ankurpathak.username/username-validation -->
+		<dependency>
+			<groupId>com.github.ankurpathak.username</groupId>
+			<artifactId>username-validation</artifactId>
+			<version>1.4.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

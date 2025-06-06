@@ -28,7 +28,6 @@ public class UserController {
     public static final String USER_ID = "/{id}";
     public static final String USER_ANNOUNCEMENTS = USER_ID + "/announcements";
 
-    @Autowired
     private final UserService userService;
 
     @GetMapping
