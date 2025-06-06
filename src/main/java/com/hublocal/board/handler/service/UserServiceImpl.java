@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.hublocal.board.handler.utils.HandleFoundObject.getUserFromRepository;
+import static com.hublocal.board.handler.utils.UserUtils.UserLogic.*;
 
 @Service
 @RequiredArgsConstructor
@@ -42,18 +43,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UsersDto saveUser(UsersDto usersDto) {
-        UserLogic.validateUserIsAvailableByName(userRepository, usersDto.getUserName());
+        verifyEmailCorrect(userRepository, usersDto.getEmail());
+        validateUserIsAvailableByName(userRepository, usersDto.getUserName());
         Users userEntity = usersMapper.toEntity(usersDto);
         return usersMapper.toDto(userRepository.save(userEntity));
     }
 
     @Override
     public UsersDto updateUser(String id, UsersDto userDto) {
+        verifyEmailCorrect(userRepository, userDto.getEmail());
         Users userDb;
         try {
             userDb = getUserFromRepository(userRepository, id);
             if(!userDb.getUserName().equals(userDto.getUserName())) {
-                UserLogic.validateUserIsAvailableByName(userRepository, userDto.getUserName());
+                validateUserIsAvailableByName(userRepository, userDto.getUserName());
             }
 
             Users userToSave = usersMapper.toEntity(userDto);
