@@ -2,39 +2,38 @@ package com.hublocal.board.handler.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.hublocal.board.handler.entities.Photos;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
+import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Builder
 @Data
-public class AnnouncementDto {
+public class CommentDto {
+
     private UUID id;
 
-    @NotBlank
-    @Size(max = 50)
-    private String announcementName;
-
-    @NotBlank
-    @Size(max = 1000)
-    private String description;
-
-    @Valid
     @NotNull
-    private Integer categoryId;
-
-    private String city;
-
     @Valid
-    private Set<Photos> photos = new HashSet<>();
+    @Min(1)
+    @Max(5)
+    private Integer rating;
+
+    @NotNull
+    @Size(max = 50, min = 2)
+    private String commentTitle;
+
+    @Size(max = 1000, min = 2)
+    private String commentDescription;
 
     @JsonSerialize(as = LocalDateTime.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
@@ -43,5 +42,6 @@ public class AnnouncementDto {
     @JsonSerialize(as = LocalDateTime.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime modifiedDate;
+
 
 }

@@ -8,6 +8,7 @@ import org.mapstruct.*;
 public interface UsersMapper {
 
     @Mapping(ignore = true, target = "announcements")
+    @Mapping(ignore = true, target = "comments")
     Users toEntity(UsersDto usersDto);
 
     UsersDto toDto(Users users);

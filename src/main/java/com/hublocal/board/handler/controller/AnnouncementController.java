@@ -23,9 +23,8 @@ import static com.hublocal.board.handler.utils.HandleFoundObject.getAnnouncement
 public class AnnouncementController {
 
     public static final String ANNOUNCEMENT_PATH = "/api/v1/announcements";
-    public static final String ANNOUNCEMENT_ID = "/{id}";
+    public static final String ANNOUNCEMENT_ID = "/{announcementId}";
 
-    @Autowired
     private final AnnouncementService announcementService;
 
     @GetMapping
@@ -34,8 +33,8 @@ public class AnnouncementController {
     }
 
     @GetMapping(ANNOUNCEMENT_ID)
-    public AnnouncementDto getById(@PathVariable String id) {
-        return announcementService.getAnnouncementById(id).orElseThrow(NotFoundException::new);
+    public AnnouncementDto getById(@PathVariable String announcementId) {
+        return announcementService.getAnnouncementById(announcementId).orElseThrow(NotFoundException::new);
     }
 
     @PostMapping
@@ -47,15 +46,14 @@ public class AnnouncementController {
     }
 
     @PutMapping(ANNOUNCEMENT_ID)
-    public ResponseEntity<AnnouncementDto> updateById(@PathVariable String id, @Validated @RequestBody AnnouncementDto announcementDto, @RequestHeader("userId") String userId) {
-        return ResponseEntity.ok(announcementService.updateAnnouncement(id, announcementDto, userId));
+    public ResponseEntity<AnnouncementDto> updateById(@PathVariable String announcementId, @Validated @RequestBody AnnouncementDto announcementDto, @RequestHeader("userId") String userId) {
+        return ResponseEntity.ok(announcementService.updateAnnouncement(announcementId, announcementDto, userId));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(ANNOUNCEMENT_ID)
-    public void deleteById(@PathVariable String id,  @RequestHeader("userId") String userId) {
-        getAnnouncement(announcementService, id);
-        announcementService.deleteAnnouncement(id, userId);
+    public void deleteById(@PathVariable String announcementId,  @RequestHeader("userId") String userId) {
+        getAnnouncement(announcementService, announcementId);
+        announcementService.deleteAnnouncement(announcementId, userId);
     }
-
 }

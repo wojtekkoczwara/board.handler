@@ -72,6 +72,11 @@ public class Users {
     @JoinColumn(referencedColumnName = "userId", name = "userId")
     private Set<Announcement> announcements = new HashSet<>();
 
+    @Valid
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "userId")
+    private Set<Comment> comments = new HashSet<>();
+
     public enum PermissionLevel {
         GUEST, USER, ADMIN, SUPER_ADMIN
     }
