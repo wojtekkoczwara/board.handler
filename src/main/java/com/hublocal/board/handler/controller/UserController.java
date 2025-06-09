@@ -25,7 +25,7 @@ import static com.hublocal.board.handler.utils.HandleFoundObject.getUser;
 public class UserController {
 
     public static final String USERS_PATH = "/api/v1/users";
-    public static final String USER_ID = "/{id}";
+    public static final String USER_ID = "/{userId}";
     public static final String USER_ANNOUNCEMENTS = USER_ID + "/announcements";
 
     private final UserService userService;
@@ -36,13 +36,13 @@ public class UserController {
     }
 
     @GetMapping(USER_ID)
-    public UsersDto getById(@PathVariable String id) {
-        return userService.getUserById(id).orElseThrow(NotFoundException::new);
+    public UsersDto getById(@PathVariable String userId) {
+        return userService.getUserById(userId).orElseThrow(NotFoundException::new);
     }
 
     @GetMapping(USER_ANNOUNCEMENTS)
-    public List<String> getUserAnnouncementsIdByUserId(@PathVariable String id){
-        return userService.getUserAnnouncementByUserId(id);
+    public List<String> getUserAnnouncementsIdByUserId(@PathVariable String userId){
+        return userService.getUserAnnouncementByUserId(userId);
     }
 
     @PostMapping
@@ -54,15 +54,15 @@ public class UserController {
     }
 
     @PutMapping(USER_ID)
-    public ResponseEntity<UsersDto> updateById(@PathVariable String id, @Validated @RequestBody UsersDto user) {
-        return ResponseEntity.ok(userService.updateUser(id, user));
+    public ResponseEntity<UsersDto> updateById(@PathVariable String userId, @Validated @RequestBody UsersDto user) {
+        return ResponseEntity.ok(userService.updateUser(userId, user));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(USER_ID)
-    public void deleteById(@PathVariable String id) {
-        getUser(userService, id);
-        userService.deleteUser(UUID.fromString(id));
+    public void deleteById(@PathVariable String userId) {
+        getUser(userService, userId);
+        userService.deleteUser(UUID.fromString(userId));
     }
 
 }

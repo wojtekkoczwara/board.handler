@@ -39,19 +39,15 @@ public class UsersDto {
     private String lastName;
 
     @Size(max = 100)
-    @Column(length = 100)
     private String company;
 
     @Size(max = 32)
-    @Column(length = 32)
     private String commune;
 
     @Size(max = 32)
-    @Column(length = 32)
     private String district;
 
     @Size(max = 9)
-    @Column(length = 9)
     private String phoneNumber;
 
     public enum PermissionLevel {

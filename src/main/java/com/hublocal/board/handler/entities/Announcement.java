@@ -51,13 +51,17 @@ public class Announcement {
     private String city;
 
     @Valid
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(referencedColumnName = "announcementId", name = "announcementId")
     private Set<Photos> photos = new HashSet<>();
 
+    @Valid
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "announcementId")
+    private Set<Comment> comments = new HashSet<>();
+
     @CreationTimestamp
     private LocalDateTime createdDate;
-
     @UpdateTimestamp
     private LocalDateTime modifiedDate;
 }

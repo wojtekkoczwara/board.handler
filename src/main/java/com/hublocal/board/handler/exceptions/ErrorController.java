@@ -2,6 +2,7 @@ package com.hublocal.board.handler.exceptions;
 
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Builder;
 import lombok.Data;
@@ -78,12 +79,9 @@ public class ErrorController {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<CustomExceptionResponse> handleMessageNotReadableException(HttpMessageNotReadableException exception) {
 
+        Object fieldPath =  exception.getCause().toString().split("com.hublocal.board.handler.model.")[1].split("\"")[1].split("\"")[0];
 
-        InvalidFormatException exceptionParsed = (InvalidFormatException) exception.getCause();
-        Object fieldPath =  exceptionParsed.getPath().toString().split("com.hublocal.board.handler.model.")[1];
-        Object fieldValue = ((InvalidFormatException) exception.getCause()).getValue().toString();
-
-        CustomExceptionResponse response = new CustomExceptionResponse(400, "Field: " + fieldPath + " has incorrect value: '" + fieldValue + "'. Required type is: " + exceptionParsed.getTargetType());
+        CustomExceptionResponse response = new CustomExceptionResponse(400, "Field: " + fieldPath + " has incorrect value. Required type is: " + ((MismatchedInputException) exception.getCause()).getTargetType());
         return ResponseEntity
                 .status(response.getCode())
                 .body(response);
